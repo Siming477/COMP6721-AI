@@ -16,7 +16,7 @@ transformer = transforms.Compose([
 
 # Data Loader
 train_path = 'Database/training-data'
-test_path = 'Database/training-data'
+test_path = 'Database/testing-data'
 
 train_loader = DataLoader(
     torchvision.datasets.ImageFolder(train_path, transform=transformer),
