@@ -14,14 +14,8 @@ transformer = transforms.Compose([
     transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
 ])
 
-# Data Loader
-train_path = 'dataset/training_data'
+# Test data Loader
 test_path = 'dataset/testing_data'
-
-train_loader = DataLoader(
-    torchvision.datasets.ImageFolder(train_path, transform=transformer),
-    batch_size=50, shuffle=True
-)
 test_loader = DataLoader(
     torchvision.datasets.ImageFolder(test_path, transform=transformer),
     batch_size=50, shuffle=True
@@ -56,31 +50,12 @@ class CNN(nn.Module):
         output = self.out(x)
         return output
 
-# Print CNN
 cnn = CNN()
-print(cnn)
 
-# Optimizer and loss function
-optimizer = torch.optim.Adam(cnn.parameters(), lr=0.001)   # optimize all cnn parameters, learning rate=0.001
-loss_func = nn.CrossEntropyLoss()
-
-# Training
-cnn.train()
-for epoch in range(10):
-    for i, (images, labels) in enumerate(train_loader):
-        prediction = cnn(images)
-        loss = loss_func(prediction, labels)
-
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-
-        total = labels.size(0)
-        _, predicted = torch.max(prediction.data, 1)
-        correct = (predicted == labels).sum().item()
-        accuracy = correct/total
-
-    print('Epoch: '+str(epoch)+' Train Loss: '+str(loss.item())+' Train Accuracy: '+str(accuracy))
+# Load model
+load_cnn = torch.load('save.model')
+cnn = CNN()
+cnn.load_state_dict(load_cnn)
 
 # Testing
 cnn.eval()
@@ -106,3 +81,5 @@ print("Classification Report: ")
 print(classification_report(y_true, y_pred))
 print("Confusion Matrix: ")
 print(confusion_matrix(y_true, y_pred))
+
+
