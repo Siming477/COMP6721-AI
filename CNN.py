@@ -29,29 +29,43 @@ test_loader = DataLoader(
 class CNN(nn.Module):
     def __init__(self):
         super(CNN, self).__init__()
-        self.conv1 = nn.Sequential(         # input shape (3, 256, 256)
+        self.conv_layer = nn.Sequential(  # input shape (3, 256, 256)
             nn.Conv2d(
-                in_channels=3,              # rgb
-                out_channels=16,            # n_filters
-                kernel_size=3,              # filter size
-                stride=1,                   # filter movement
-                padding=1,                  # padding=(kernel_size-1)/2
-            ),                              # output shape (16, 256, 256)
-            nn.ReLU(),                      # activation
-            nn.MaxPool2d(kernel_size=2),    # output shape (16, 128, 128)
+                in_channels=3,  # rgb
+                out_channels=16,  # n_filters
+                kernel_size=3,  # filter size
+                stride=1,  # filter movement
+                padding=1,  # padding=(kernel_size-1)/2
+            ),  # output shape (16, 256, 256)
+            nn.BatchNorm2d(16),
+            nn.LeakyReLU(inplace=True),
+            nn.Conv2d(16, 16, 3, 1, 1),
+            nn.BatchNorm2d(16),
+            nn.LeakyReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2),  # output shape (16, 128, 128)
+
+            nn.Conv2d(16, 32, 3, 1, 1),  # output shape (32, 128, 128)
+            nn.BatchNorm2d(32),
+            nn.LeakyReLU(inplace=True),
+            nn.Conv2d(32, 32, 3, 1, 1),
+            nn.BatchNorm2d(32),
+            nn.LeakyReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2),  # output shape (32, 64, 64)
         )
-        self.conv2 = nn.Sequential(         # input shape (16, 128, 128)
-            nn.Conv2d(16, 32, 3, 1, 1),     # output shape (32, 128, 128)
-            nn.ReLU(),
-            nn.MaxPool2d(2),                # output shape (32, 64, 64)
+        self.fc_layer = nn.Sequential(
+            nn.Dropout(p=0.1),
+            nn.Linear(32 * 64 * 64, 1000),
+            nn.ReLU(inplace=True),
+            nn.Linear(1000, 512),
+            nn.ReLU(inplace=True),
+            nn.Dropout(p=0.1),
+            nn.Linear(512, 3)
         )
-        self.out = nn.Linear(32 * 64 * 64, 3)   # fully connected layer, output 3 classes
 
     def forward(self, x):
-        x = self.conv1(x)
-        x = self.conv2(x)
-        x = x.view(x.size(0), -1)           # flatten the output of conv2 to (batch_size, 32 * 64 * 64)
-        output = self.out(x)
+        x = self.conv_layer(x)
+        x = x.view(x.size(0), -1)  # flatten the output of conv2 to (batch_size, 32 * 64 * 64)
+        output = self.fc_layer(x)
         return output
 
 # Print CNN
